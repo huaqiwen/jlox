@@ -74,6 +74,8 @@ public class Scanner {
                 if (match('/')) {
                     // A comment goes until the end of the line
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    blockComment();
                 } else {
                     addToken(SLASH);
                 }
@@ -136,7 +138,7 @@ public class Scanner {
             advance();
         }
 
-        // Unterminated string
+        // Unterminated string.
         if (isAtEnd()) {
             Lox.error(line, "Unterminated string.");
             return;
@@ -148,6 +150,22 @@ public class Scanner {
         // Trim the surrounding quotes.
         String val = source.substring(start + 1, current - 1);
         addToken(STRING, val);
+    }
+
+    private void blockComment() {
+        while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) {
+            if (peek() == '\n') line++;
+            advance();
+        }
+
+        // Unterminated block comment.
+        if (isAtEnd()) {
+            Lox.error(line, "Unterminated block comment.");
+            return;
+        }
+
+        // The closing */
+        current += 2;
     }
 
     private boolean isAtEnd() {
